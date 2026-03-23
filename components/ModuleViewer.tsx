@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { type Module } from "@/lib/modules-data";
+import { type DbModule } from "@/lib/modules-data";
 
 interface ModuleViewerProps {
-  module: Module;
+  module: DbModule;
   completed: boolean;
 }
 

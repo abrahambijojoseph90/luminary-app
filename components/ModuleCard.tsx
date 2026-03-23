@@ -1,8 +1,16 @@
 import Link from "next/link";
-import { type Module } from "@/lib/modules-data";
 
 interface ModuleCardProps {
-  module: Module;
+  module: {
+    id: number;
+    title: string;
+    subtitle: string;
+    type: string;
+    duration: string;
+    category: string;
+    categoryColor: string;
+    excerpt: string;
+  };
   completed: boolean;
 }
 
@@ -18,10 +26,8 @@ export function ModuleCard({ module, completed }: ModuleCardProps) {
         }}
       >
         <div className="flex items-start justify-between gap-3 mb-3">
-          <span
-            className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-            style={{ background: module.categoryColor + "22", color: module.categoryColor }}
-          >
+          <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+            style={{ background: module.categoryColor + "22", color: module.categoryColor }}>
             {module.category}
           </span>
           {completed ? (

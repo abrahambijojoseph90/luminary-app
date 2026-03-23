@@ -7,6 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id            String         @id @default(cuid())
   name          String?
@@ -14,10 +19,31 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  role          Role           @default(USER)
   accounts      Account[]
   sessions      Session[]
   progress      UserProgress[]
   createdAt     DateTime       @default(now())
+}
+
+model Module {
+  id            Int            @id @default(autoincrement())
+  phase         Int
+  title         String
+  subtitle      String
+  type          String         // "article" | "video"
+  duration      String
+  skills        Json           // { vision: 18, servanthood: 8, ... }
+  category      String
+  categoryColor String
+  excerpt       String
+  videoUrl      String?
+  content       Json           // [{ heading: string, body: string }]
+  order         Int            @default(0)
+  published     Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  progress      UserProgress[]
 }
 
 model UserProgress {
@@ -27,6 +53,7 @@ model UserProgress {
   completedAt  DateTime @default(now())
   lastViewedAt DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module       Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@unique([userId, moduleId])
 }
