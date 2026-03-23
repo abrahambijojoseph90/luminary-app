@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { type Module } from "@/lib/modules-data";
@@ -15,21 +15,18 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
   const [unlocked, setUnlocked] = useState(initialCompleted);
   const [celebrating, setCelebrating] = useState(false);
   const [loading, setLoading] = useState(false);
-  const contentRef = useRef<HTMLDivElement>(null);
 
+  // Use window scroll — works correctly on both mobile and desktop
   useEffect(() => {
     if (initialCompleted) return;
-    const el = contentRef.current;
-    if (!el) return;
 
     function onScroll() {
-      if (!el) return;
-      const scrolled = el.scrollTop / (el.scrollHeight - el.clientHeight);
+      const scrolled = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
       if (scrolled >= 0.3) setUnlocked(true);
     }
 
-    el.addEventListener("scroll", onScroll);
-    return () => el.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, [initialCompleted]);
 
   async function markComplete() {
@@ -53,21 +50,21 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
   }
 
   return (
-    <div className="relative h-screen flex flex-col lg:h-auto lg:min-h-screen">
+    <div className="relative min-h-screen">
       {/* Celebration overlay */}
       {celebrating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="text-center animate-fade-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0" style={{ background: "#07090fcc" }} />
+          <div className="relative text-center animate-fade-up">
             <div className="text-6xl mb-4">◈</div>
             <p className="font-display text-3xl font-bold" style={{ color: "#c49a3c" }}>Module Complete</p>
             <p className="text-sm mt-2" style={{ color: "#6b7280" }}>Your DNA map is growing.</p>
           </div>
-          <div className="absolute inset-0" style={{ background: "#07090f99" }} />
         </div>
       )}
 
       {/* Header */}
-      <div className="flex-shrink-0 px-4 md:px-8 py-5" style={{ borderBottom: "1px solid #1e2540" }}>
+      <div className="px-4 md:px-8 py-5" style={{ borderBottom: "1px solid #1e2540" }}>
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
             <Link href="/modules" className="text-xs hover:opacity-80 transition-opacity" style={{ color: "#6b7280" }}>
@@ -77,9 +74,9 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
             <span className="text-xs" style={{ color: "#3a4060" }}>Phase {mod.phase}</span>
           </div>
 
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
                   style={{ background: mod.categoryColor + "22", color: mod.categoryColor }}>
                   {mod.category}
@@ -88,7 +85,7 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
                   {mod.type === "video" ? "▶" : "≡"} {mod.duration}
                 </span>
               </div>
-              <h1 className="font-display text-2xl md:text-3xl font-bold" style={{ color: "#e8e4d9" }}>
+              <h1 className="font-display text-xl md:text-3xl font-bold leading-snug" style={{ color: "#e8e4d9" }}>
                 {mod.title}
               </h1>
               <p className="text-sm mt-1" style={{ color: "#6b7280" }}>{mod.subtitle}</p>
@@ -96,13 +93,13 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
 
             {completed ? (
               <button onClick={markIncomplete}
-                className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
+                className="flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all min-h-[44px]"
                 style={{ background: "#c49a3c22", color: "#c49a3c", border: "1px solid #c49a3c44" }}>
                 ✓ Completed
               </button>
             ) : (
               <button onClick={markComplete} disabled={!unlocked || loading}
-                className="flex-shrink-0 px-4 py-2 rounded-xl text-xs font-semibold transition-all"
+                className="flex-shrink-0 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all min-h-[44px]"
                 style={{
                   background: unlocked ? "#c49a3c" : "#1e2540",
                   color: unlocked ? "#07090f" : "#3a4060",
@@ -116,11 +113,11 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
       </div>
 
       {/* Content */}
-      <div ref={contentRef} className="flex-1 overflow-y-auto px-4 md:px-8 py-8">
+      <div className="px-4 md:px-8 py-8 pb-32 lg:pb-16">
         <div className="max-w-3xl mx-auto">
           {/* Video */}
           {mod.type === "video" && mod.videoUrl && (
-            <div className="mb-8 rounded-2xl overflow-hidden" style={{ aspectRatio: "16/9" }}>
+            <div className="mb-8 rounded-2xl overflow-hidden w-full" style={{ aspectRatio: "16/9" }}>
               <iframe
                 src={mod.videoUrl}
                 title={mod.title}
@@ -146,7 +143,7 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
             <div className="mt-12 py-6 text-center" style={{ borderTop: "1px solid #1e2540" }}>
               {unlocked ? (
                 <button onClick={markComplete} disabled={loading}
-                  className="px-8 py-3 rounded-xl font-semibold transition-all hover:-translate-y-0.5"
+                  className="px-8 py-3 rounded-xl font-semibold transition-all hover:-translate-y-0.5 min-h-[48px]"
                   style={{ background: "#c49a3c", color: "#07090f" }}>
                   {loading ? "Saving..." : "Mark as Complete →"}
                 </button>
@@ -160,7 +157,7 @@ export function ModuleViewer({ module: mod, completed: initialCompleted }: Modul
             <div className="mt-12 py-6 text-center" style={{ borderTop: "1px solid #1e2540" }}>
               <p className="text-sm mb-4" style={{ color: "#6b7280" }}>Module complete. Ready for the next one?</p>
               <Link href="/modules"
-                className="inline-flex px-6 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+                className="inline-flex px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5 min-h-[48px] items-center"
                 style={{ background: "#c49a3c22", color: "#c49a3c", border: "1px solid #c49a3c44" }}>
                 Back to Modules →
               </Link>
